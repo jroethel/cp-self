@@ -10,6 +10,10 @@ DEST="${1:-$HOME/.claude}"
 
 cp "$SRC/self-manual.md" "$DEST/self-manual.md"
 
+mkdir -p "$DEST/skills"
+cp -rT "$SRC/skill" "$DEST/skills/self-manual-regen"
+echo "installed: $DEST/skills/self-manual-regen"
+
 CLAUDE_MD="$DEST/CLAUDE.md"
 IMPORT_LINE="@$DEST/self-manual.md"
 if ! grep -qF "self-manual.md" "$CLAUDE_MD" 2>/dev/null; then

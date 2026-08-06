@@ -98,7 +98,7 @@ Derive the denominator mechanically from the archived old lean manual, not from 
 N=$(grep -cE '^\s*[-*] |^[0-9]+\. ' archive/$TODAY/self-manual.md)
 ```
 
-Read that old manual and the new lean manual; emit `CHANGES-<TODAY>.md` with four buckets:
+Read that old manual and the new lean manual; emit `archive/CHANGES-<TODAY>.md` with four buckets:
 confirmed, new, dropped, contradicted.
 Each new rule carries a verbatim evidence quote and its source file.
 Each dropped rule carries the question "did behavior actually change?".

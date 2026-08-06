@@ -17,7 +17,7 @@ Injected into `CLAUDE.md` so every session starts already knowing where Jeremy i
 ## Re-extraction
 
 Rerun when enough new history has accumulated (a few months of sessions) or after a major shift in how you work.
-Consider running it in a session without `CLAUDE.md` loaded (`claude --setting sources` tricks, or a scratch `CLAUDE_CONFIG_DIR`), so the extractor observes the raw history instead of being steered by the rules you already wrote about yourself.
+Consider running it in a session without `CLAUDE.md` loaded (`claude --safe-mode`, which disables all customizations while keeping the normal config dir), so the extractor observes the raw history instead of being steered by the rules you already wrote about yourself.
 
 Prompt:
 

@@ -8,7 +8,7 @@ DEST="${1:-$HOME/.claude}"
 
 [ -d "$DEST" ] || { echo "error: $DEST does not exist"; exit 1; }
 
-cp "$SRC/self-manual.md" "$DEST/self-manual.md"
+cp "$SRC/private/self-manual.md" "$DEST/self-manual.md"
 
 mkdir -p "$DEST/skills"
 rm -rf "$DEST/skills/self-manual-regen" "$DEST/skills/self-manual-evidence" "$DEST/skills/self-manual-distill"

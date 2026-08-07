@@ -25,16 +25,23 @@ Phase 1 Archive -> Phase 2 Clean-room extract -> Phase 3 Rename + preflight -> H
 Run from the repo root (`~/create/skills/cp-self`) so relative paths and cwd line up.
 Compute once, up front: `TODAY=$(date +%F)` and `HOST=$(hostname -s)`.
 
+All personal artifacts (evidence docs, scan logs, archives, the lean manual) live in `private/`, a
+nested git repo with its own private remote, ignored entirely by the outer skill repo.
+The private repo is the transport between hosts - corporate firewalls block scp, but git hosting
+gets through - and each host commits only its own hostname-stamped files, so pushes never conflict
+by construction.
+
 ## Phase 1: Archive
 
-`mkdir -p archive/$TODAY`, then copy every `self-manual.evidence*.md` and `SCAN_LOG*.md` that
-exists into `archive/$TODAY/`.
+`git -C private pull --rebase` first, so this host sees the current shared state.
+Then `mkdir -p private/archive/$TODAY` and copy this host's `self-manual.evidence.$HOST.md` and
+`SCAN_LOG.$HOST.md` that exist into `private/archive/$TODAY/`.
 A fresh host with no prior evidence archives nothing; that is fine.
 Whatever was copied must verify non-empty (`test -s`) before Phase 2 starts; a partial archive is
 a defect, not a head start.
 
-Same-day rerun (expected after a mid-run death): if `archive/$TODAY/` already holds this host's
-valid non-empty evidence files, do not re-archive over them.
+Same-day rerun (expected after a mid-run death): if `private/archive/$TODAY/` already holds this
+host's valid non-empty evidence files, do not re-archive over them.
 Treat that archive as the rollback point; restore the live evidence files from it, then re-enter
 Phase 2.
 
@@ -59,33 +66,38 @@ truncates an archived-and-restorable state.
 
 ## Phase 3: Rename + preflight
 
-Stamp the outputs with this host, unconditionally - even on a single-host setup, so downstream
-globs and provenance stay uniform:
+Stamp the outputs with this host and move them into the private repo, unconditionally - even on a
+single-host setup, so downstream globs and provenance stay uniform:
 
 ```
-mv self-manual.evidence.md self-manual.evidence.$HOST.md
-mv SCAN_LOG.md SCAN_LOG.$HOST.md
+mv self-manual.evidence.md private/self-manual.evidence.$HOST.md
+mv SCAN_LOG.md private/SCAN_LOG.$HOST.md
 ```
 
 Then preflight the substance floor - a silent empty run is a defect, not a pass:
-`SCAN_LOG.$HOST.md` is non-empty and references `.claude/projects` paths;
-`self-manual.evidence.$HOST.md` is non-empty and not drastically smaller than this host's archived
-prior;
+`private/SCAN_LOG.$HOST.md` is non-empty and references `.claude/projects` paths;
+`private/self-manual.evidence.$HOST.md` is non-empty and not drastically smaller than this host's
+archived prior;
 a scan that read far fewer files than this host's archived prior scan log fails this floor.
 The floor is always per host: never compare against another host's files.
 
 ## Hand off
 
-If this host will run the distill: nothing to move; invoke `/self-manual-distill` once every other
-host has reported in.
-Otherwise, stage the exact transfer for Jeremy:
+First, the pre-push prune: anything that must never reach the private remote at all - not even in
+history - gets deleted from this host's evidence file NOW, before the push.
+The HC0 prune on the distill host cleans the working tree; git history is forever.
+Offer Jeremy the file for a quick look before staging the push.
+
+Then commit only this host's own files - hostname-stamped names keep pushes conflict-free:
 
 ```
-scp self-manual.evidence.$HOST.md SCAN_LOG.$HOST.md <distill-host>:~/create/skills/cp-self/
+git -C private add "self-manual.evidence.$HOST.md" "SCAN_LOG.$HOST.md" archive/
+git -C private commit -m "evidence: $HOST $TODAY"
+git -C private push
 ```
 
-Never transport evidence via git; the files are gitignored on purpose (personal profile data stays
-out of the repo).
+Never commit personal data to the outer skill repo; `private/` is ignored there on purpose.
+When every host has pushed, invoke `/self-manual-distill` on whichever host will distill.
 
 ## Red flags - stop, you are rationalizing
 
@@ -97,5 +109,7 @@ out of the repo).
 |                                                      | defect                                          |
 | "Single host, skip the hostname rename"              | Stamp it anyway; distill globs and provenance   |
 |                                                      | depend on uniform names                         |
+| "I'll commit another host's file too, tidier"        | Each host pushes only its own stamped files;    |
+|                                                      | that is what keeps pushes conflict-free         |
 | "Evidence is ready, I'll go ahead and distill"       | Distill is /self-manual-distill, once, after    |
 |                                                      | every host reports in                           |

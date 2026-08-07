@@ -11,8 +11,11 @@ DEST="${1:-$HOME/.claude}"
 cp "$SRC/self-manual.md" "$DEST/self-manual.md"
 
 mkdir -p "$DEST/skills"
-cp -rT "$SRC/skill" "$DEST/skills/self-manual-regen"
-echo "installed: $DEST/skills/self-manual-regen"
+rm -rf "$DEST/skills/self-manual-regen" "$DEST/skills/self-manual-evidence" "$DEST/skills/self-manual-distill"
+cp -R "$SRC/skill/evidence" "$DEST/skills/self-manual-evidence"
+cp -R "$SRC/skill/distill" "$DEST/skills/self-manual-distill"
+echo "installed: $DEST/skills/self-manual-evidence"
+echo "installed: $DEST/skills/self-manual-distill"
 
 CLAUDE_MD="$DEST/CLAUDE.md"
 IMPORT_LINE="@$DEST/self-manual.md"

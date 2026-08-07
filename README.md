@@ -17,11 +17,13 @@ Injected into `CLAUDE.md` so every session starts already knowing where Jeremy i
 ## Re-extraction
 
 Rerun when enough new history has accumulated (a few months of sessions) or after a major shift in how you work.
+Two skills, matching the two halves of the pipeline:
 
-Run `/self-manual-regen` in a normal Claude Code session.
-It archives the current manuals, re-extracts in a clean room (a `claude --safe-mode` subprocess, so the extractor observes the raw history instead of being steered by the rules you already wrote about yourself), distills full-to-lean with carry-forward, reports rule-level changes, and stages the install after Jeremy's approval.
-
-Then rerun `./install.sh`.
+1. `/self-manual-evidence` - run on **each host** with Claude Code history.
+   Archives that host's prior evidence, re-extracts in a clean room (a `claude --safe-mode` subprocess, so the extractor observes the raw history instead of being steered by the rules you already wrote about yourself), and emits hostname-stamped evidence files.
+   Collect them onto one host via `scp` (never git; they are gitignored personal data).
+2. `/self-manual-distill` - run **once, on any host** holding the collected evidence.
+   Holds for your evidence prune, distills the Top-10 lean manual, reports thematic + rule-level changes, and stages `./install.sh` plus propagation to the other hosts for your approval.
 
 ## Install
 

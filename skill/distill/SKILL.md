@@ -27,11 +27,15 @@ Compute `TODAY=$(date +%F)` up front.
 
 All personal artifacts (evidence docs, scan logs, archives, the lean manual) live in `private/`, a
 nested git repo with its own private remote, ignored entirely by the outer skill repo.
-Collection is a pull; propagation is a push; never commit personal data to the outer repo.
+The remote only ever sees encrypted `.age` blobs: collection is `./vault.sh pull` (pull-decrypt),
+propagation is `./vault.sh push` (encrypt-commit-push); never commit personal data to the outer
+repo.
 
 ## Phase 1: Collect + archive
 
-`git -C private pull --rebase` to collect what every host pushed.
+`./vault.sh pull` to collect and decrypt what every host pushed.
+Pull exactly once, here - never mid-run; a pull overwrites local plaintext, which after HC0 would
+clobber Jeremy's prunes.
 List every `private/self-manual.evidence.*.md` present and name the hosts they came from; Jeremy
 confirms the set is complete (all hosts reported in) before anything else happens.
 At least one evidence doc must exist; zero is a hard stop pointing at `/self-manual-evidence`.
@@ -136,18 +140,19 @@ After he installs, assert the import is still single
 (`test "$(grep -c 'self-manual.md' ~/.claude/CLAUDE.md)" -eq 1`).
 
 Then push the results so every host can pull them - the new manual, the pruned evidence, the
-archive, and the change report all travel in the private repo, so the drift record stays complete
-everywhere:
+archive, and the change report all travel encrypted in the private repo, so the drift record stays
+complete everywhere (this also makes the prunes stick: vault.sh drops blobs whose plaintext is
+gone):
 
 ```
-git -C private add -A && git -C private commit -m "manual: $TODAY" && git -C private push
+./vault.sh push
 ```
 
 If other hosts exist, stage the propagation alongside (also Jeremy's trigger; it edits each host's
 `CLAUDE.md` via its `install.sh`) - on each other host:
 
 ```
-git -C ~/create/skills/cp-self/private pull && ~/create/skills/cp-self/install.sh
+cd ~/create/skills/cp-self && ./vault.sh pull && ./install.sh
 ```
 
 Then prompt him to run the transplant test (HC3):

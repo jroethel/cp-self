@@ -27,13 +27,14 @@ Compute once, up front: `TODAY=$(date +%F)` and `HOST=$(hostname -s)`.
 
 All personal artifacts (evidence docs, scan logs, archives, the lean manual) live in `private/`, a
 nested git repo with its own private remote, ignored entirely by the outer skill repo.
-The private repo is the transport between hosts - corporate firewalls block scp, but git hosting
-gets through - and each host commits only its own hostname-stamped files, so pushes never conflict
-by construction.
+The remote only ever sees encrypted `.age` blobs: `./vault.sh push|pull` handles
+encrypt-commit-push and pull-decrypt, and plaintext exists only on the hosts.
+Each host writes only its own hostname-stamped files, so pushes never conflict by construction.
 
 ## Phase 1: Archive
 
-`git -C private pull --rebase` first, so this host sees the current shared state.
+`./vault.sh pull` first, so this host sees the current shared state (pull once, up front - never
+mid-run; a pull overwrites local plaintext with pulled versions).
 Then `mkdir -p private/archive/$TODAY` and copy this host's `self-manual.evidence.$HOST.md` and
 `SCAN_LOG.$HOST.md` that exist into `private/archive/$TODAY/`.
 A fresh host with no prior evidence archives nothing; that is fine.
@@ -88,15 +89,14 @@ history - gets deleted from this host's evidence file NOW, before the push.
 The HC0 prune on the distill host cleans the working tree; git history is forever.
 Offer Jeremy the file for a quick look before staging the push.
 
-Then commit only this host's own files - hostname-stamped names keep pushes conflict-free:
+Then sync - encryption, commit, and push in one step; the remote only ever sees ciphertext:
 
 ```
-git -C private add "self-manual.evidence.$HOST.md" "SCAN_LOG.$HOST.md" archive/
-git -C private commit -m "evidence: $HOST $TODAY"
-git -C private push
+./vault.sh push
 ```
 
-Never commit personal data to the outer skill repo; `private/` is ignored there on purpose.
+Never commit personal data to the outer skill repo; `private/` is ignored there on purpose, and
+plaintext inside `private/` is ignored by the private repo too - only `vault/*.age` is tracked.
 When every host has pushed, invoke `/self-manual-distill` on whichever host will distill.
 
 ## Red flags - stop, you are rationalizing

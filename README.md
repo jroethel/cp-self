@@ -10,11 +10,13 @@ Injected into `CLAUDE.md` so every session starts already knowing where Jeremy i
 |--------------|---------------------------------------------------------------------------------|
 | `private/`   | Nested private git repo: the manual, evidence docs, scan logs, archives.        |
 | `skill/`     | The two regeneration skills: `evidence/` (per host) and `distill/` (once).      |
+| `vault.sh`   | Encrypted sync for `private/`: push = encrypt-commit-push, pull = pull-decrypt. |
 | `install.sh` | Idempotent installer. Copies the manual + skills, adds one import line.         |
 
 All personal profile data lives in `private/`, a nested git repo the outer repo ignores entirely.
-It syncs between hosts through its own private remote (corporate firewalls block scp; git hosting gets through).
-Each host commits only its own hostname-stamped files, so pushes never conflict.
+It syncs between hosts through its own private remote (corporate firewalls block scp; git hosting gets through), and the remote only ever sees `age`-encrypted blobs (`private/vault/*.age`).
+Files are encrypted to every key in `private/recipients.txt`: each host's passphrase-less age key (`~/.ssh/age.key`) for automation, plus Jeremy's ssh-ed25519 key as break-glass recovery (`age -d -i ~/.ssh/id_ed25519 <blob>`).
+Each host writes only its own hostname-stamped files, so pushes never conflict.
 
 ## Re-extraction
 
@@ -34,12 +36,18 @@ Two skills, matching the two halves of the pipeline:
 ./install.sh /path/to/other-dir # if a session uses a non-default CLAUDE_CONFIG_DIR
 ```
 
-New host setup (clone the skill repo, then the private repo inside it):
+New host setup (clone both repos, mint the host's age key, get rekeyed, install):
 
 ```bash
+brew install age   # or the distro equivalent
 git clone <outer-remote> ~/create/skills/cp-self
 git clone <private-remote> ~/create/skills/cp-self/private
-cd ~/create/skills/cp-self && ./install.sh
+cd ~/create/skills/cp-self
+age-keygen -o ~/.ssh/age.key && chmod 600 ~/.ssh/age.key
+grep 'public key' ~/.ssh/age.key | sed 's/# public key: //' >> private/recipients.txt
+git -C private commit -am "recipients: add $(hostname -s)" && git -C private push
+# then on any EXISTING host, so the new host can decrypt: ./vault.sh pull && ./vault.sh push
+./vault.sh pull && ./install.sh
 ```
 
 ## Verify the transplant took

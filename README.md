@@ -36,19 +36,20 @@ Two skills, matching the two halves of the pipeline:
 ./install.sh /path/to/other-dir # if a session uses a non-default CLAUDE_CONFIG_DIR
 ```
 
-New host setup (clone both repos, mint the host's age key, get rekeyed, install):
+New host setup - `setup-host.sh` mints the host's age key, joins (or creates) the private vault, and registers the host as a recipient:
 
 ```bash
 brew install age   # or the distro equivalent
-git clone <outer-remote> ~/create/skills/cp-self
-git clone <private-remote> ~/create/skills/cp-self/private
+git clone https://github.com/jroethel/cp-self.git ~/create/skills/cp-self
 cd ~/create/skills/cp-self
-age-keygen -o ~/.ssh/age.key && chmod 600 ~/.ssh/age.key
-grep 'public key' ~/.ssh/age.key | sed 's/# public key: //' >> private/recipients.txt
-git -C private commit -am "recipients: add $(hostname -s)" && git -C private push
-# then on any EXISTING host, so the new host can decrypt: ./vault.sh pull && ./vault.sh push
+./setup-host.sh <private-remote-url>   # omit the URL to start a brand-new vault
+# joining an existing vault: on a host that already holds plaintext, rekey with
+#   ./vault.sh pull && ./vault.sh push
+# then back on the new host:
 ./vault.sh pull && ./install.sh
 ```
+
+Public users: fork this repo, run `./setup-host.sh` with no URL, create your own private remote when prompted, then run `/self-manual-evidence` - the extraction prompt scans *your* history, so the manual it builds is about you.
 
 ## Verify the transplant took
 

@@ -8,6 +8,10 @@ DEST="${1:-$HOME/.claude}"
 
 [ -d "$DEST" ] || { echo "error: $DEST does not exist"; exit 1; }
 
+if [ -f "$DEST/self-manual.md" ] && ! cmp -s "$SRC/private/self-manual.md" "$DEST/self-manual.md"; then
+  cp "$DEST/self-manual.md" "$DEST/self-manual.md.pre-install.bak"
+  echo "backed up prior manual: $DEST/self-manual.md.pre-install.bak"
+fi
 cp "$SRC/private/self-manual.md" "$DEST/self-manual.md"
 
 mkdir -p "$DEST/skills"

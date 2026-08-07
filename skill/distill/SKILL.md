@@ -40,8 +40,9 @@ List every `private/self-manual.evidence.*.md` present and name the hosts they c
 confirms the set is complete (all hosts reported in) before anything else happens.
 At least one evidence doc must exist; zero is a hard stop pointing at `/self-manual-evidence`.
 
-Then `mkdir -p private/archive/$TODAY` and copy `private/self-manual.md` plus every
-`private/self-manual.evidence*.md` and `private/SCAN_LOG*.md` into `private/archive/$TODAY/`.
+Then `mkdir -p private/archive/$TODAY` and copy `private/self-manual.md`, `private/CHANGES.md`
+(if present - the prior run's change report), plus every `private/self-manual.evidence*.md` and
+`private/SCAN_LOG*.md` into `private/archive/$TODAY/`.
 Fail loudly and list any expected input that is missing rather than half-archiving; a partial
 archive is a defect, not a head start.
 Hard-gate on a post-copy verification that every archived file exists and is non-empty (`test -s`).
@@ -60,14 +61,14 @@ Phase 2 starts only on his go, and distills from the evidence exactly as he left
 ## Phase 2: Distill + port
 
 Read every post-prune evidence doc (`private/self-manual.evidence*.md`) plus
-`skill/distill/ported.md`.
+`skill/distill/carry-forward.md`.
 The post-prune evidence docs are the sole evidence source: never re-consult raw history or the
 archived manuals to restore evidence Jeremy pruned; a pruned incident must not resurface as a rule.
 Write the new lean `private/self-manual.md` via temp-then-mv: behavior rules only, one sentence per
 line, plain dashes.
 Stamp its header `extraction <TODAY>` so freshness checks have a distinctive literal.
-Append every section from `ported.md` verbatim; the clean room cannot see `ported.md`, so this is
-how the Verification craft section survives a regeneration.
+Append every section from `carry-forward.md` verbatim; it holds rules about the model's craft, not
+about Jeremy, so the clean room can never regenerate them - this appending is how they survive.
 
 Two gates control the manual's size; there is no byte ceiling.
 
@@ -81,7 +82,7 @@ each - no numeric scoring formula.
 Cross-host recurrence weighs heavily: a pattern that shows up independently in two hosts' evidence
 docs outranks a single-host pattern, all else equal.
 The preamble (who Jeremy is, the skill map) is context, not a rule, and is exempt from the count;
-so are the ported sections.
+so are the carry-forward sections.
 A new rule enters only by displacement: name the rule it outranks and why.
 Rules keep their section grouping in the manual; the cap is global.
 Nothing drops silently: every cut or displaced rule lands in the change report with its weight
@@ -89,7 +90,9 @@ call, and contested rankings are Jeremy's to settle at HC1.
 
 ## Phase 3: Compare
 
-Read the archived old lean manual and the new lean manual; emit `private/archive/CHANGES-<TODAY>.md`.
+Read the archived old lean manual and the new lean manual; emit `private/CHANGES.md`, dated in its
+header; it lives beside the scan logs and gets archived into `archive/$TODAY/` by the next run's
+Phase 1.
 The comparison is always lean-vs-lean: the short manual is the artifact that ships, so it is the
 artifact that gets compared.
 
@@ -120,7 +123,7 @@ mechanically derived count.
 
 ## Phase 4: Review gate + install
 
-Present `CHANGES-<TODAY>.md` at HC1.
+Present `private/CHANGES.md` at HC1.
 HC1 covers two things at once: old-rule classification correctness, and verification that every
 new rule's cited evidence quote actually exists in the collected `private/self-manual.evidence*.md`
 / `private/SCAN_LOG*.md` files (grep each quote).

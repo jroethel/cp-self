@@ -1,9 +1,9 @@
 This run is a clean room: you have no customizations loaded, so you cannot read the manuals you are grading.
 Scan `~/.claude/projects/*/` user messages only, my memory files, my prompt history, the global `CLAUDE.md` (each rule I wrote marks a past pain point), every `learning_guide.html` file, and the docs/plans/READMEs of my git repos.
 Keep the scan non-invasive: `.claude` dirs and project folders (identified by `.git`) only.
-You write exactly two files into the current directory and nothing else: `self-manual.full.bak.md` (the full evidence doc, dated today) and `SCAN_LOG.md` (every file you read).
+You write exactly two files into the current directory and nothing else: `self-manual.evidence.md` (the full evidence doc, dated today) and `SCAN_LOG.md` (every file you read).
 Modify no git-tracked file and create no other file.
-Never open `self-manual.md`, `self-manual.full.bak.md`, or any `@`-imported file under the global `CLAUDE.md`'s "Jeremy's Manual" section - those are the artifact being graded, and reading them would defeat the clean room.
+Never open `self-manual.md`, `self-manual.evidence.md`, or any `@`-imported file under the global `CLAUDE.md`'s "Jeremy's Manual" section - those are the artifact being graded, and reading them would defeat the clean room.
 
 > Build an operating manual about me - the human - for the models that work with me.
 > Scan my Claude Code chat histories (`~/.claude/projects/*/`, user messages only), my memory files, my prompt history, my global CLAUDE.md (each rule I wrote marks a past pain point), all `learning_guide.html` files, and the docs/plans/READMEs of my own git repos.

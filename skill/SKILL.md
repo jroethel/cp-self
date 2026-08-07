@@ -43,8 +43,8 @@ Work the phases in order; a phase is done when its gate passes.
 ## Phase 1: Archive
 
 Compute `TODAY=$(date +%F)` and `mkdir -p archive/$TODAY`.
-Copy each of `self-manual.md`, `self-manual.evidence.md`, and `SCAN_LOG.md` that exists into
-`archive/$TODAY/`.
+Copy `self-manual.md` plus every `self-manual.evidence*.md` and `SCAN_LOG*.md` that exists into
+`archive/$TODAY/` (the globs sweep per-host evidence files too).
 Fail loudly and list any expected input that is missing rather than half-archiving; a partial
 archive is a defect, not a head start.
 Before Phase 2 may start, hard-gate on a post-copy verification that every archived file exists and
@@ -52,8 +52,8 @@ is non-empty (`test -s`).
 
 Same-day rerun (expected after a mid-run death): if `archive/$TODAY/` already exists and holds a
 valid non-empty set, do not re-archive over it.
-Treat the existing archive as the rollback point; restore the live `self-manual.md`,
-`self-manual.evidence.md`, and `SCAN_LOG.md` from it, then re-enter Phase 2.
+Treat the existing archive as the rollback point; restore the live `self-manual.md` and the
+evidence/scan-log files from it, then re-enter Phase 2.
 Never re-archive over a good first archive.
 
 ## Phase 2: Clean-room extraction
@@ -80,17 +80,32 @@ Preflight the substance floor before Phase 3 - a silent empty run is a defect, n
 `self-manual.evidence.md` is non-empty and not drastically smaller than the archived prior;
 a scan that read far fewer files than `archive/$TODAY/SCAN_LOG.md` fails this floor.
 
+Multi-host evidence: Jeremy runs Claude Code on several hosts, and chat history is local to each.
+Run this phase on every host from that host's clone of this repo, then rename the outputs so
+provenance survives:
+
+```
+mv self-manual.evidence.md self-manual.evidence.$(hostname -s).md
+mv SCAN_LOG.md SCAN_LOG.$(hostname -s).md
+```
+
+Collect all per-host files onto whichever host will run Phase 3 - any host works - via scp/rsync,
+never via git; the evidence files are gitignored on purpose.
+The preflight floor is per host: each scan compares against that host's own archived prior.
+
 **HC0 - evidence prune (Jeremy's trigger).**
-Once the preflight passes, stop and hand the new `self-manual.evidence.md` to Jeremy for review.
+Once the preflight passes, stop and hand the new evidence doc(s) - every `self-manual.evidence*.md`
+present - to Jeremy for review.
 This is his editing point: an incident he judges one-off (a single late-night frustration, a
 settled quirk) gets deleted from the full doc here, and that deletion is final downstream.
 Phase 3 starts only on his go, and distills from the full doc exactly as he left it.
 
 ## Phase 3: Distill + port
 
-In the main session (not the subprocess), read the post-prune full doc plus `skill/ported.md`.
-The post-prune full doc is the sole evidence source: never re-consult raw history or the archived
-manuals to restore evidence Jeremy pruned; a pruned incident must not resurface as a rule.
+In the main session (not the subprocess), read every post-prune evidence doc
+(`self-manual.evidence*.md`) plus `skill/ported.md`.
+The post-prune evidence docs are the sole evidence source: never re-consult raw history or the
+archived manuals to restore evidence Jeremy pruned; a pruned incident must not resurface as a rule.
 Write the new lean `self-manual.md` via temp-then-mv: behavior rules only, one sentence per line,
 plain dashes.
 Stamp its header `extraction <TODAY>` so freshness checks have a distinctive literal.
@@ -106,6 +121,8 @@ Generic craft ("verify claims", "write tests") is cut on sight.
 Capacity gate - Top 10: the manual carries at most 10 behavioral rules, ranked by weight (impact,
 frequency, propensity to trip Jeremy up) as ordinal judgment calls with one line of rationale
 each - no numeric scoring formula.
+Cross-host recurrence weighs heavily: a pattern that shows up independently in two hosts' evidence
+docs outranks a single-host pattern, all else equal.
 The preamble (who Jeremy is, the skill map) is context, not a rule, and is exempt from the count;
 so are the ported sections.
 A new rule enters only by displacement: name the rule it outranks and why.
@@ -148,8 +165,8 @@ mechanically derived count.
 
 Present `CHANGES-<TODAY>.md` at HC1.
 HC1 covers two things at once: old-rule classification correctness, and verification that every
-new rule's cited evidence quote actually exists in the regenerated `self-manual.evidence.md` /
-`SCAN_LOG.md` (grep each quote).
+new rule's cited evidence quote actually exists in the regenerated `self-manual.evidence*.md` /
+`SCAN_LOG*.md` files (grep each quote).
 An unverifiable new-rule quote is a blocking defect that sends the run back to Phase 3, not a
 footnote.
 Contested rankings and displacement calls are settled here; Jeremy owns the final Top 10.
@@ -163,8 +180,19 @@ On approval, stage the exact command for Jeremy (HC2):
 Do not run it; it edits the real `CLAUDE.md` and changes what every future session sees, so it is
 his irreversible trigger.
 After he installs, assert the import is still single
-(`test "$(grep -c 'self-manual.md' ~/.claude/CLAUDE.md)" -eq 1`), then prompt him to run the
-transplant test (HC3):
+(`test "$(grep -c 'self-manual.md' ~/.claude/CLAUDE.md)" -eq 1`).
+
+If other hosts exist, stage the propagation alongside so they do not drift on a stale manual
+(also Jeremy's trigger; it edits each remote host's `CLAUDE.md` via its `install.sh`):
+
+```
+scp self-manual.md <host>:~/create/skills/cp-self/ && ssh <host> '~/create/skills/cp-self/install.sh'
+```
+
+The drift record (`archive/`, `CHANGES-*.md`) accumulates on whichever host ran the regen; rsync
+`archive/` between hosts if one continuous record matters.
+
+Then prompt him to run the transplant test (HC3):
 
 ```
 claude -p "What should you watch out for when I hand you a plan I'm excited about?"

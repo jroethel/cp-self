@@ -1,12 +1,12 @@
 ---
 name: self-manual-distill
 description: >
-  Distill Jeremy's collected evidence docs into the lean Top-10 self-manual, compare thematically
+  Distill the user's collected evidence docs into the lean Top-10 self-manual, compare thematically
   against the prior manual, and stage the install. Run once, on any single host, after
   /self-manual-evidence has run on every host and the per-host evidence files are collected here.
   Use when the user says "distill my self-manual", "regenerate my self-manual", "update
   self-manual", or wants to compare and install a new manual from already-collected evidence.
-  The irreversible install is always Jeremy's trigger, never the skill's.
+  The irreversible install is always the user's trigger, never the skill's.
 user-invocable: true
 ---
 
@@ -20,9 +20,9 @@ host holds the collected files.
 Phase 1 Collect + archive -> HC0 Prune -> Phase 2 Distill + port -> Phase 3 Compare -> Phase 4 HC1 review -> HC2 install -> HC3 transplant
 ```
 
-Four steps are Jeremy's triggers, never the skill's: the evidence prune sign-off (HC0), any
+Four steps are the owner's triggers, never the skill's: the evidence prune sign-off (HC0), any
 contested rule ranking (HC1), the install and propagation (HC2), and the transplant test (HC3).
-Run from the repo root (`~/create/skills/cp-self`) so relative paths and cwd line up.
+Run from the repo root (the cp-self clone) so relative paths and cwd line up.
 Compute `TODAY=$(date +%F)` up front.
 
 All personal artifacts (evidence docs, scan logs, archives, the lean manual) live in `private/`, a
@@ -35,10 +35,12 @@ repo.
 
 `./vault.sh pull` to collect and decrypt what every host pushed.
 Pull exactly once, here - never mid-run; a pull overwrites local plaintext, which after HC0 would
-clobber Jeremy's prunes.
-List every `private/self-manual.evidence.*.md` present and name the hosts they came from; Jeremy
-confirms the set is complete (all hosts reported in) before anything else happens.
+clobber the owner's prunes.
+List every `private/self-manual.evidence.*.md` present and name the hosts they came from; the
+owner confirms the set is complete (all hosts reported in) before anything else happens.
 At least one evidence doc must exist; zero is a hard stop pointing at `/self-manual-evidence`.
+Read the owner's name from `private/owner.txt`; if it is missing, ask the user and write it, so
+the manual is titled for a named person.
 
 Then `mkdir -p private/archive/$TODAY` and copy `private/self-manual.md`, `private/CHANGES.md`
 (if present - the prior run's change report), plus every `private/self-manual.evidence*.md` and
@@ -51,24 +53,27 @@ Same-day rerun (expected after a mid-run death): if `private/archive/$TODAY/` al
 valid non-empty set, do not re-archive over it; treat it as the rollback point, restore the live
 files from it, and continue.
 
-## HC0: Evidence prune (Jeremy's trigger)
+## HC0: Evidence prune (the owner's trigger)
 
-Stop and hand every evidence doc to Jeremy for review.
-This is his editing point: an incident he judges one-off (a single late-night frustration, a
+Stop and hand every evidence doc to the owner for review.
+This is their editing point: an incident they judge one-off (a single late-night frustration, a
 settled quirk) gets deleted from the evidence here, and that deletion is final downstream.
-Phase 2 starts only on his go, and distills from the evidence exactly as he left it.
+Phase 2 starts only on the owner's go, and distills from the evidence exactly as they left it.
 
 ## Phase 2: Distill + port
 
 Read every post-prune evidence doc (`private/self-manual.evidence*.md`) plus
 `skill/distill/carry-forward.md`.
 The post-prune evidence docs are the sole evidence source: never re-consult raw history or the
-archived manuals to restore evidence Jeremy pruned; a pruned incident must not resurface as a rule.
+archived manuals to restore evidence the owner pruned; a pruned incident must not resurface as a
+rule.
 Write the new lean `private/self-manual.md` via temp-then-mv: behavior rules only, one sentence per
 line, plain dashes.
+Title it `<Owner>'s Operating Manual` using the name from `private/owner.txt`, and use the name
+throughout where it helps the reader.
 Stamp its header `extraction <TODAY>` so freshness checks have a distinctive literal.
 Append every section from `carry-forward.md` verbatim; it holds rules about the model's craft, not
-about Jeremy, so the clean room can never regenerate them - this appending is how they survive.
+about the owner, so the clean room can never regenerate them - this appending is how they survive.
 
 Two gates control the manual's size; there is no byte ceiling.
 
@@ -77,16 +82,16 @@ post-prune doc AND changes behavior - a competent model without the manual would
 Generic craft ("verify claims", "write tests") is cut on sight.
 
 Capacity gate - Top 10: the manual carries at most 10 behavioral rules, ranked by weight (impact,
-frequency, propensity to trip Jeremy up) as ordinal judgment calls with one line of rationale
+frequency, propensity to trip the owner up) as ordinal judgment calls with one line of rationale
 each - no numeric scoring formula.
 Cross-host recurrence weighs heavily: a pattern that shows up independently in two hosts' evidence
 docs outranks a single-host pattern, all else equal.
-The preamble (who Jeremy is, the skill map) is context, not a rule, and is exempt from the count;
-so are the carry-forward sections.
+The preamble (who the owner is, the skill map) is context, not a rule, and is exempt from the
+count; so are the carry-forward sections.
 A new rule enters only by displacement: name the rule it outranks and why.
 Rules keep their section grouping in the manual; the cap is global.
 Nothing drops silently: every cut or displaced rule lands in the change report with its weight
-call, and contested rankings are Jeremy's to settle at HC1.
+call, and contested rankings are the owner's to settle at HC1.
 
 ## Phase 3: Compare
 
@@ -96,8 +101,8 @@ Phase 1.
 The comparison is always lean-vs-lean: the short manual is the artifact that ships, so it is the
 artifact that gets compared.
 
-Lead the report with a thematic delta, because the question Jeremy is answering is "has my style
-or ability changed over time?", not "which bullets moved".
+Lead the report with a thematic delta, because the question the owner is answering is "has my
+style or ability changed over time?", not "which bullets moved".
 Group the changes into themes (e.g. shell/git fluency, planning discipline, scope control,
 cost awareness, tone), and for each theme call it strengthened, faded, or held, backed by one
 old-vs-new evidence pair.
@@ -129,17 +134,17 @@ new rule's cited evidence quote actually exists in the collected `private/self-m
 / `private/SCAN_LOG*.md` files (grep each quote).
 An unverifiable new-rule quote is a blocking defect that sends the run back to Phase 2, not a
 footnote.
-Contested rankings and displacement calls are settled here; Jeremy owns the final Top 10.
+Contested rankings and displacement calls are settled here; the owner owns the final Top 10.
 
-On approval, stage the exact command for Jeremy (HC2):
+On approval, stage the exact command for the owner (HC2):
 
 ```
 ./install.sh
 ```
 
 Do not run it; it edits the real `CLAUDE.md` and changes what every future session sees, so it is
-his irreversible trigger.
-After he installs, assert the import is still single
+the owner's irreversible trigger.
+After the owner installs, assert the import is still single
 (`test "$(grep -c 'self-manual.md' ~/.claude/CLAUDE.md)" -eq 1`).
 
 Then push the results so every host can pull them - the new manual, the pruned evidence, the
@@ -151,14 +156,14 @@ gone):
 ./vault.sh push
 ```
 
-If other hosts exist, stage the propagation alongside (also Jeremy's trigger; it edits each host's
-`CLAUDE.md` via its `install.sh`) - on each other host:
+If other hosts exist, stage the propagation alongside (also the owner's trigger; it edits each
+host's `CLAUDE.md` via its `install.sh`) - on each other host, from its cp-self clone:
 
 ```
-cd ~/create/skills/cp-self && ./vault.sh pull && ./install.sh
+./vault.sh pull && ./install.sh
 ```
 
-Then prompt him to run the transplant test (HC3):
+Then prompt the owner to run the transplant test (HC3):
 
 ```
 claude -p "What should you watch out for when I hand you a plan I'm excited about?"
@@ -172,13 +177,13 @@ Pass: the answer comes from the manual's intuition map, not generic advice.
 |------------------------------------------------------|-------------------------------------------------|
 | "I'll edit self-manual.md directly, faster"          | Editing in place grades the manual with itself; |
 |                                                      | distill from collected evidence only            |
-| "Jeremy pruned it, but the evidence was strong"      | Pruned is pruned; the post-prune evidence docs  |
+| "The owner pruned it, but the evidence was strong"   | Pruned is pruned; the post-prune evidence docs  |
 |                                                      | are the only distill source                     |
 | "This rule is good, I'll squeeze in an 11th"         | The cap is the design; entry is by displacement |
 |                                                      | with the weight call settled at HC1             |
 | "Coverage is roughly N"                              | Derive N mechanically with grep -cE; never guess|
 |                                                      | the denominator                                 |
-| "One host's evidence is missing, close enough"       | Jeremy confirms the host set at Phase 1; a      |
+| "One host's evidence is missing, close enough"       | The owner confirms the host set at Phase 1; a   |
 |                                                      | missing host skews every frequency weight       |
-| "I'll install now and transplant later"              | Install is Jeremy's trigger (HC2); stage it and |
-|                                                      | wait                                            |
+| "I'll install now and transplant later"              | Install is the owner's trigger (HC2); stage it  |
+|                                                      | and wait                                        |

@@ -1,28 +1,28 @@
 ---
 name: self-manual-evidence
 description: >
-  Per-host clean-room evidence extraction for Jeremy's self-manual. Run on each host where Claude
-  Code has chat history: archives that host's prior evidence, scans local history in a safe-mode
-  clean room, and emits hostname-stamped evidence files ready to collect for /self-manual-distill.
-  Use when the user says "collect self-manual evidence", "scan this host's history", "run the
-  evidence extraction", or kicks off a self-manual regeneration on any host. Never distills or
-  installs anything - that is /self-manual-distill's job.
+  Per-host clean-room evidence extraction for the user's self-manual. Run on each host where
+  Claude Code has chat history: archives that host's prior evidence, scans local history in a
+  safe-mode clean room, and emits hostname-stamped evidence files ready to collect for
+  /self-manual-distill. Use when the user says "collect self-manual evidence", "scan this host's
+  history", "run the evidence extraction", or kicks off a self-manual regeneration on any host.
+  Never distills or installs anything - that is /self-manual-distill's job.
 user-invocable: true
 ---
 
 # self-manual-evidence: clean-room evidence extraction, per host
 
-You produce this host's evidence files for Jeremy's self-manual.
+You produce this host's evidence files for the owner's self-manual.
 You never distill, compare, or install - that is `/self-manual-distill`, run once on one host after
 every host's evidence is collected there.
 The extraction is a clean room: the extractor observes raw history and never reads the manuals it
 is grading.
 
 ```
-Phase 1 Archive -> Phase 2 Clean-room extract -> Phase 3 Rename + preflight -> Hand off
+Phase 0 Owner identity -> Phase 1 Archive -> Phase 2 Clean-room extract -> Phase 3 Rename + preflight -> Hand off
 ```
 
-Run from the repo root (`~/create/skills/cp-self`) so relative paths and cwd line up.
+Run from the repo root (the cp-self clone) so relative paths and cwd line up.
 Compute once, up front: `TODAY=$(date +%F)` and `HOST=$(hostname -s)`.
 
 All personal artifacts (evidence docs, scan logs, archives, the lean manual) live in `private/`, a
@@ -30,6 +30,14 @@ nested git repo with its own private remote, ignored entirely by the outer skill
 The remote only ever sees encrypted `.age` blobs: `./vault.sh push|pull` handles
 encrypt-commit-push and pull-decrypt, and plaintext exists only on the hosts.
 Each host writes only its own hostname-stamped files, so pushes never conflict by construction.
+
+## Phase 0: Owner identity
+
+Read the owner's name from `private/owner.txt`.
+If the file is missing, ask the user for their name, confirm the spelling back to them, and write
+it to `private/owner.txt`; it syncs across hosts through the vault like every other private file.
+The name is injected into the extraction prompt so the evidence doc and the manual built from it
+speak about a named person, not a generic "the user".
 
 ## Phase 1: Archive
 
@@ -51,7 +59,7 @@ Phase 2.
 Run the pinned command from the repo root so its cwd is the repo and its only outputs land there:
 
 ```
-claude --safe-mode --model claude-opus-4-8 --dangerously-skip-permissions -p "$(cat skill/evidence/extraction-prompt.md)"
+claude --safe-mode --model claude-opus-4-8 --dangerously-skip-permissions -p "My name is $(cat private/owner.txt). $(cat skill/evidence/extraction-prompt.md)"
 ```
 
 The model pin is on the one line above; tune it there if the judgment-heaviest step needs a
@@ -87,7 +95,7 @@ The floor is always per host: never compare against another host's files.
 First, the pre-push prune: anything that must never reach the private remote at all - not even in
 history - gets deleted from this host's evidence file NOW, before the push.
 The HC0 prune on the distill host cleans the working tree; git history is forever.
-Offer Jeremy the file for a quick look before staging the push.
+Offer the owner the file for a quick look before staging the push.
 
 Then sync - encryption, commit, and push in one step; the remote only ever sees ciphertext:
 

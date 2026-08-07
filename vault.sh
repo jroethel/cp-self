@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Encrypted sync for private/: plaintext stays local, git only ever sees .age blobs.
 # Encrypts to every pubkey in private/recipients.txt: each host's passphrase-less
-# age key (~/.ssh/age.key, automation) AND Jeremy's ssh-ed25519 key (break-glass
-# recovery: age -d -i ~/.ssh/id_ed25519 <blob> works anywhere, passphrase prompt).
+# age key (~/.ssh/age.key, automation) AND optionally the owner's ssh-ed25519 key
+# (break-glass recovery: age -d -i ~/.ssh/id_ed25519 <blob>, passphrase prompt).
 # Add a host = age-keygen -o ~/.ssh/age.key there, append its age pubkey + ssh
 # pubkey to recipients.txt, then push from any host holding plaintext (rekeys all).
 # Usage: ./vault.sh push | ./vault.sh pull

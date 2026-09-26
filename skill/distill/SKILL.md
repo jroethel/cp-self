@@ -62,11 +62,15 @@ Phase 2 starts only on the owner's go, and distills from the evidence exactly as
 
 ## Phase 2: Distill + port
 
-Read every post-prune evidence doc (`private/self-manual.evidence*.md`) plus
-`skill/distill/carry-forward.md`.
+Read every post-prune evidence doc (`private/self-manual.evidence*.md`), plus
+`skill/distill/carry-forward.md` and every `private/molt-rulings-*.md` present.
 The post-prune evidence docs are the sole evidence source: never re-consult raw history or the
 archived manuals to restore evidence the owner pruned; a pruned incident must not resurface as a
 rule.
+The molt-rulings files are not evidence; they are owner-accepted audit findings, and each ruling is
+a binding constraint on the emitted manual: the manual must comply with every ruling, but a ruling
+never adds a rule the evidence does not support and never resurrects evidence the owner pruned at
+HC0.
 Write the new lean `private/self-manual.md` via temp-then-mv: behavior rules only, one sentence per
 line, plain dashes.
 Title it `<Owner>'s Operating Manual` using the name from `private/owner.txt`, and use the name
@@ -74,8 +78,18 @@ throughout where it helps the reader.
 Stamp its header `extraction <TODAY>` so freshness checks have a distinctive literal.
 Append every section from `carry-forward.md` verbatim; it holds rules about the model's craft, not
 about the owner, so the clean room can never regenerate them - this appending is how they survive.
+An empty `carry-forward.md` is a valid input, not a missing one: it means nothing currently carries
+forward (it was deliberately emptied per molt finding D1), so append nothing and continue.
 
-Two gates control the manual's size; there is no byte ceiling.
+Three gates control what enters the manual; there is no byte ceiling.
+
+Durability gate: a candidate enters the manual body only if it would still be true a year from now
+absent a life change.
+Temporal facts (subscriptions, deadlines, live constraints) never enter the manual body: drop them,
+or if one is load-bearing, emit it to a "Current context" section at the end of the manual, dated
+in its header and clearly marked as expiring.
+If the evidence docs tag candidates durable/temporal at extraction, inherit the label; otherwise
+judge durability here.
 
 Entry gate - earn-its-line: a rule competes for a slot only if it is backed by evidence in the
 post-prune doc AND changes behavior - a competent model without the manual would act differently.

@@ -59,7 +59,7 @@ Phase 2.
 Run the pinned command from the repo root so its cwd is the repo and its only outputs land there:
 
 ```
-claude --safe-mode --model claude-opus-4-8 --dangerously-skip-permissions -p "My name is $(cat private/owner.txt). $(cat skill/evidence/extraction-prompt.md)"
+claude --safe-mode --model opus --dangerously-skip-permissions -p "My name is $(cat private/owner.txt). $(cat skill/evidence/extraction-prompt.md)"
 ```
 
 The model pin is on the one line above; tune it there if the judgment-heaviest step needs a
